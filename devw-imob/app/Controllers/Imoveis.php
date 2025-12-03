@@ -88,7 +88,7 @@ class Imoveis extends BaseController
 
             if ($this->imovelModel->update($editarId, $editarImovel)) {
                 session()->setFlashData('msg', 'Imóvel editado com sucesso');
-                return redirect()->to(base_url('imoveis'));
+                return redirect()->to(base_url('admin/imoveis'));
             } else {
                 $dados['msg'] = "Erro ao editar imóvel";
                 $dados['erros'] = $this->imovelModel->errors();
@@ -108,6 +108,6 @@ class Imoveis extends BaseController
         } else {
             session()->setFlashData('msg', 'Erro ao excluir imóvel');
         }
-        return redirect()->to(base_url('imoveis'));
+        return redirect()->to(base_url('admin/imoveis'));
     }
 }

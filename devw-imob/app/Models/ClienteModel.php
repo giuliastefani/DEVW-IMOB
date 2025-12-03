@@ -12,11 +12,12 @@ class ClienteModel extends Model
     protected $returnType = 'object';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
-    protected $allowedFields = ['nome', 'cpf', 'data_nascimento'];
+    protected $allowedFields = ['nome', 'cpf', 'data_nascimento', 'usuario_id'];
 
     protected $useTimestamps = false;
 
     protected $validationRules = [
+        'id' => 'permit_empty',
         'nome' => 'required|min_length[3]',
         'cpf' => 'required|exact_length[11]|is_unique[cliente.cpf,id,{id}]',
         'data_nascimento' => 'required|valid_date'

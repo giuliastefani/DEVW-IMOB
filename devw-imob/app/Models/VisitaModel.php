@@ -43,4 +43,23 @@ class VisitaModel extends Model
 
         return $builder->get()->getResult('object');
     }
+
+    public function getVisitasComDetalhesPorCliente($idCliente = null)
+    {
+        $builder = $this->db->table('visita');
+        $builder->select('
+            visita.*, 
+            cliente.nome as nome_cliente, 
+            imovel.tipo_imovel, 
+            imovel.bairro
+        ');
+        $builder->join('cliente', 'cliente.id = visita.id_cliente');
+        $builder->join('imovel', 'imovel.id = visita.id_imovel');
+        if (! empty($idCliente)) {
+            $builder->where('visita.id_cliente', $idCliente);
+        }
+        $builder->orderBy('visita.data', 'DESC');
+
+        return $builder->get()->getResult('object');
+    }
 }
