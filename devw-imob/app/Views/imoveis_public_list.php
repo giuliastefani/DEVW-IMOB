@@ -1,50 +1,54 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<?= $this->extend('layout') ?>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imobiliária - Nossos Imóveis</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+<?= $this->section('content') ?>
+<div class="container container-card">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h4 mb-0">Imóveis disponíveis</h1>
+  </div>
 
-<body>
-    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark container">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="<?php echo base_url() ?>">Imobiliária</a>
-            <div class="collapse navbar-collapse" id="navbarCollapse">
-                <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                    <li class="nav-item"><a class="nav-link" href="<?php echo base_url('imoveis') ?>">Gestão de
-                            Imóveis</a></li>
-                    <li class="nav-item"><a class="nav-link" href="<?php echo base_url('clientes') ?>">Gestão de
-                            Clientes</a></li>
-                    <li class="nav-item"><a class="nav-link" href="<?php echo base_url('visitas') ?>">Gestão de
-                            Visitas</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container mt-5" style="padding-top: 50px;">
-        <h1 class="text-center mb-4">Nossos Imóveis Disponíveis</h1>
-
-        <div class="list-group">
-            <?php if (!empty($imoveis)): ?>
-                <?php foreach ($imoveis as $imovel): ?>
-                    <?php
-                    $titulo = $imovelModel->getTituloFormatado($imovel) .
-                        ' em ' . $imovel->bairro . ', ' . $imovel->cidade .
-                        ' (Para ' . $imovel->tipo_transacao . ')';
-                    ?>
-                    <a href="<?php echo base_url('imovel/' . $imovel->id) ?>" class="list-group-item list-group-item-action">
-                        <?php echo $titulo ?>
-                    </a>
-                <?php endforeach; ?>
+  <?php if (empty($imoveis) || ! is_array($imoveis)): ?>
+    <div class="alert alert-info">Nenhum imóvel encontrado.</div>
+  <?php else: ?>
+    <?php $imovelModel = model('ImovelModel'); ?>
+    <div class="row g-3">
+      <?php foreach ($imoveis as $imovel): ?>
+        <?php
+          $item = is_object($imovel) ? $imovel : (is_array($imovel) ? (object)$imovel : null);
+          $id = $item->id ?? '';
+          $titulo = $item ? $imovelModel->getTituloFormatado($item) : 'Sem título';
+          $bairro = $item->bairro ?? '';
+          $cidade = $item->cidade ?? '';
+          $preco = $item->preco ?? null;
+          $foto = $item->foto ?? '';
+        ?>
+        <div class="col-12 col-sm-6 col-md-4">
+          <div class="card h-100">
+            <?php if (! empty($foto)): ?>
+              <img src="<?= esc(base_url('uploads/' . $foto)) ?>" class="card-img-top" alt="<?= esc($titulo) ?>">
             <?php else: ?>
-                <p class="text-center">Nenhum imóvel cadastrado no momento.</p>
+              <div class="bg-light d-flex align-items-center justify-content-center" style="height:180px;color:var(--muted);border-top-left-radius:12px;border-top-right-radius:12px;">
+                Imagem indisponível
+              </div>
             <?php endif; ?>
-        </div>
-    </div>
-</body>
 
-</html>
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title mb-1"><?= esc($titulo) ?></h5>
+              <p class="card-text text-muted small mb-2"><?= esc($bairro) ?><?= $bairro && $cidade ? ', ' : '' ?><?= esc($cidade) ?></p>
+
+              <?php if ($preco !== null && $preco !== ''): ?>
+                <p class="fw-bold mb-2 mt-auto">R$ <?= number_format((float)$preco, 2, ',', '.') ?></p>
+              <?php endif; ?>
+
+              <?php if ($id !== ''): ?>
+                <a href="<?= base_url('imovel/' . $id) ?>" class="btn btn-primary mt-2">Ver detalhes</a>
+              <?php else: ?>
+                <a class="btn btn-secondary mt-2 disabled" aria-disabled="true">Sem detalhes</a>
+              <?php endif; ?>
+            </div>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+</div>
+<?= $this->endSection() ?>

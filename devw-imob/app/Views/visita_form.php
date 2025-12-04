@@ -1,74 +1,75 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<?= $this->extend('layout') ?>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $titulo ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+<?= $this->section('content') ?>
+<h1 class="text-center mb-4"><?= $titulo ?></h1>
 
-<body>
-    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark container">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="<?php echo base_url() ?>">Imobiliária</a>
-            <div class="collapse navbar-collapse" id="navbarCollapse">
-                <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                    <li class="nav-item"><a class="nav-link" href="<?php echo base_url('imoveis') ?>">Gestão de
-                            Imóveis</a></li>
-                    <li class="nav-item"><a class="nav-link" href="<?php echo base_url('clientes') ?>">Gestão de
-                            Clientes</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="<?php echo base_url('visitas') ?>">Gestão de
-                            Visitas</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+<?php if ($msg != ""): ?>
+    <p class="alert alert-info"><?= $msg ?></p>
+<?php endif; ?>
 
-    <div class="container mt-5" style="padding-top: 50px;">
-        <h1 class="text-center mb-4"><?php echo $titulo ?></h1>
+<?php if (isset($erros) && !empty($erros)): ?>
+    <ul style="color:red;" class="alert alert-danger">
+        <?php foreach ($erros as $erro): ?>
+            <li><?= $erro ?></li>
+        <?php endforeach; ?>
+    </ul>
+<?php endif; ?>
 
-        <?php if ($msg != ""): ?>
-            <p class="alert alert-info"><?php echo $msg ?></p>
-        <?php endif; ?>
+<form method="post">
+    <?php
+    $visitaId = '';
+    if (isset($visita)) {
+        if (is_object($visita) && isset($visita->id)) {
+            $visitaId = $visita->id;
+        } elseif (is_array($visita) && isset($visita['id'])) {
+            $visitaId = $visita['id'];
+        }
+    }
+    ?>
+    <input type="hidden" name="id" value="<?= esc($visitaId) ?>">
 
-        <?php if (isset($erros) && !empty($erros)): ?>
-            <ul style="color:red;" class="alert alert-danger">
-                <?php foreach ($erros as $erro): ?>
-                    <li><?php echo $erro ?></li>
-                <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
-
-        <form method="post">
-            <input type="hidden" name="id" value="<?php echo isset($visita) ? $visita->id : "" ?>">
-
-            <div class="mb-3">
-                <label for="id_cliente" class="form-label">Cliente</label>
-                <?php echo $comboClientes ?>
-            </div>
-
-            <div class="mb-3">
-                <label for="id_imovel" class="form-label">Imóvel</label>
-                <?php echo $comboImoveis ?>
-            </div>
-
-            <div class="mb-3">
-                <label for="data" class="form-label">Data e Hora da Visita</label>
-                <?php
-                $dataValor = '';
-                if (isset($visita) && $visita->data) {
-                    $dataValor = date('Y-m-d\TH:i', strtotime($visita->data));
-                }
-                ?>
-                <input type="datetime-local" class="form-control" id="data" name="data" value="<?php echo $dataValor ?>"
-                    required>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Salvar Agendamento</button>
-            <a href="<?php echo base_url('visitas') ?>" class="btn btn-secondary">Voltar</a>
-        </form>
+    <div class="mb-3">
+        <label for="id_cliente" class="form-label">Cliente</label>
+        <?php
+        $usuarioId = service('session')->get('usuario_id');
+        if ($usuarioId) {
+            $clienteModel = model('ClienteModel');
+            $clienteLogado = $clienteModel->where('usuario_id', $usuarioId)->first();
+            if ($clienteLogado) {
+                echo '<div class="form-control">' . esc($clienteLogado->nome) . ' (CPF: ' . esc($clienteLogado->cpf) . ')</div>';
+                echo '<input type="hidden" name="id_cliente" value="' . esc($clienteLogado->id) . '">';
+            } else {
+                echo $comboClientes;
+            }
+        } else {
+            echo $comboClientes;
+        }
+        ?>
     </div>
-</body>
 
-</html>
+    <div class="mb-3">
+        <label for="id_imovel" class="form-label">Imóvel</label>
+        <?= $comboImoveis ?>
+    </div>
+
+    <div class="mb-3">
+        <label for="data" class="form-label">Data e Hora da Visita</label>
+        <?php
+        $dataValor = '';
+        if (isset($visita)) {
+            if (is_object($visita) && isset($visita->data) && $visita->data) {
+                $dataValor = date('Y-m-d\TH:i', strtotime($visita->data));
+            } elseif (is_array($visita) && ! empty($visita['data'])) {
+                $dataValor = date('Y-m-d\TH:i', strtotime($visita['data']));
+            }
+        }
+        ?>
+        <input type="datetime-local" class="form-control" id="data" name="data" value="<?= $dataValor ?>"
+            required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Salvar Agendamento</button>
+    <?php $perfil = service('session')->get('perfil'); ?>
+    <a href="<?= ($perfil === 'admin') ? base_url('admin/visitas') : base_url('visitas') ?>" class="btn btn-secondary">Voltar</a>
+</form>
+<?= $this->endSection() ?>
